@@ -1,0 +1,1887 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 Ordinateur Quantique — Tutoriel Interactif & Principes Fondamentaux</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #050711;
+            --bg-card: rgba(16, 22, 42, 0.85);
+            --bg-card-hover: rgba(24, 34, 64, 0.95);
+            --border-glow: rgba(0, 240, 255, 0.25);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            
+            --cyan: #00f0ff;
+            --magenta: #f020d0;
+            --yellow: #ffd000;
+            --green: #00ff88;
+            --violet: #9d4edd;
+            --orange: #ff8800;
+            --rose: #ff3377;
+            
+            --text-main: #f0f4fc;
+            --text-muted: #8b9bb4;
+            --text-dim: #54657e;
+            
+            --shadow-neon: 0 0 25px rgba(0, 240, 255, 0.2);
+            --radius-lg: 18px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: 'Inter', -apple-system, sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 15% 20%, rgba(0, 240, 255, 0.07) 0%, transparent 40%),
+                radial-gradient(circle at 85% 60%, rgba(240, 32, 208, 0.07) 0%, transparent 45%),
+                radial-gradient(circle at 50% 90%, rgba(157, 78, 221, 0.06) 0%, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        /* En-tête Hero */
+        header.hero {
+            padding: 4rem 2rem 2.5rem;
+            text-align: center;
+            position: relative;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            border-radius: 50px;
+            background: rgba(0, 240, 255, 0.1);
+            border: 1px solid var(--border-glow);
+            color: var(--cyan);
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 1.2rem;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.15);
+        }
+
+        .badge-pill span.dot {
+            width: 8px;
+            height: 8px;
+            background: var(--cyan);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--cyan);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.8); }
+        }
+
+        h1.main-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(2.2rem, 5vw, 3.8rem);
+            font-weight: 800;
+            line-height: 1.15;
+            background: linear-gradient(135deg, #ffffff 30%, var(--cyan) 75%, var(--magenta) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.2rem;
+        }
+
+        p.hero-sub {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            max-width: 850px;
+            margin: 0 auto 2rem;
+        }
+
+        /* Navigation par onglets */
+        nav.nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 2.5rem;
+            position: sticky;
+            top: 15px;
+            z-index: 100;
+            background: rgba(5, 7, 17, 0.8);
+            backdrop-filter: blur(16px);
+            padding: 10px;
+            border-radius: 50px;
+            border: 1px solid var(--border-subtle);
+            max-width: 980px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 10px 22px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(157, 78, 221, 0.25));
+            color: #fff;
+            border: 1px solid var(--cyan);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.25);
+        }
+
+        /* Conteneur principal */
+        main.container {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 0 1.5rem 5rem;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cartes & Panneaux */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(0, 240, 255, 0.3);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.45);
+        }
+
+        .card-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .card-title .icon-badge {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 240, 255, 0.12);
+            color: var(--cyan);
+            font-size: 1.1rem;
+            border: 1px solid rgba(0, 240, 255, 0.3);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 1.8rem;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* Formules mathématiques personnalisées façon "formule.cpp" */
+        .math-banner {
+            background: linear-gradient(135deg, rgba(8, 12, 30, 0.95), rgba(15, 20, 45, 0.9));
+            border: 1px solid rgba(0, 240, 255, 0.35);
+            border-radius: var(--radius-md);
+            padding: 1.4rem;
+            margin: 1.2rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0, 240, 255, 0.05), 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .math-banner::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+        }
+
+        .math-eq {
+            font-family: 'Fira Code', monospace;
+            font-size: 1.45rem;
+            font-weight: 600;
+            color: #fff;
+            display: inline-block;
+            letter-spacing: 0.5px;
+        }
+
+        .math-eq .term-cyan { color: var(--cyan); text-shadow: 0 0 10px rgba(0, 240, 255, 0.5); }
+        .math-eq .term-magenta { color: var(--magenta); text-shadow: 0 0 10px rgba(240, 32, 208, 0.5); }
+        .math-eq .term-yellow { color: var(--yellow); text-shadow: 0 0 10px rgba(255, 208, 0, 0.5); }
+        .math-eq .term-green { color: var(--green); text-shadow: 0 0 10px rgba(0, 255, 136, 0.5); }
+        .math-eq .term-violet { color: var(--violet); }
+
+        .math-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 8px;
+        }
+
+        /* Simulateur de Sphère de Bloch */
+        .bloch-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #090d1f;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        canvas#blochCanvas {
+            background: radial-gradient(circle at center, #101835 0%, #060914 75%);
+            border-radius: 50%;
+            cursor: grab;
+            box-shadow: inset 0 0 40px rgba(0, 240, 255, 0.15), 0 0 30px rgba(0, 0, 0, 0.6);
+            touch-action: none;
+        }
+
+        canvas#blochCanvas:active {
+            cursor: grabbing;
+        }
+
+        .bloch-controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 1.2rem;
+            width: 100%;
+        }
+
+        .gate-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-subtle);
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-family: 'Fira Code', monospace;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .gate-btn:hover {
+            border-color: var(--cyan);
+            background: rgba(0, 240, 255, 0.15);
+            color: var(--cyan);
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .gate-btn.btn-h { border-color: rgba(0, 240, 255, 0.4); }
+        .gate-btn.btn-x { border-color: rgba(255, 51, 119, 0.4); }
+        .gate-btn.btn-z { border-color: rgba(157, 78, 221, 0.4); }
+        .gate-btn.btn-m { border-color: rgba(255, 208, 0, 0.4); color: var(--yellow); }
+
+        .telemetry-panel {
+            background: rgba(10, 14, 30, 0.85);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 1.2rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+        }
+
+        .telemetry-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .telemetry-row:last-child {
+            border-bottom: none;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 5px;
+            margin-top: 6px;
+            overflow: hidden;
+            display: flex;
+        }
+
+        .prob-bar-0 {
+            background: linear-gradient(90deg, #0099ff, var(--cyan));
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .prob-bar-1 {
+            background: linear-gradient(90deg, var(--violet), var(--magenta));
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        /* Studio des Équations */
+        .eq-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 580px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        .eq-item-btn {
+            background: rgba(15, 20, 38, 0.7);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            padding: 10px 14px;
+            text-align: left;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .eq-item-btn:hover {
+            background: rgba(25, 34, 60, 0.9);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .eq-item-btn.active {
+            background: rgba(0, 240, 255, 0.12);
+            border-color: var(--cyan);
+            color: #fff;
+            box-shadow: 0 0 12px rgba(0, 240, 255, 0.2);
+        }
+
+        .eq-item-btn .eq-num {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            color: var(--cyan);
+            margin-right: 8px;
+        }
+
+        .eq-item-btn .eq-badge-mini {
+            font-size: 0.7rem;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .eq-viewer {
+            background: #080c1d;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 1.8rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        canvas#eqCanvas {
+            background: #050711;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-md);
+            width: 100%;
+            height: 220px;
+            margin: 1.2rem 0;
+        }
+
+        /* Bac à sable Circuit */
+        .circuit-sandbox {
+            background: #070a18;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            overflow-x: auto;
+        }
+
+        .circuit-wires {
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+            margin: 1.5rem 0;
+            min-width: 650px;
+        }
+
+        .circuit-wire-row {
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .wire-label {
+            width: 45px;
+            font-family: 'Fira Code', monospace;
+            font-weight: 700;
+            color: var(--cyan);
+            font-size: 0.95rem;
+        }
+
+        .wire-line {
+            flex-grow: 1;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.2);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 10px;
+        }
+
+        .gate-slot {
+            width: 38px;
+            height: 38px;
+            background: #11172e;
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Fira Code', monospace;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 2;
+        }
+
+        .gate-slot:hover {
+            border-color: var(--cyan);
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+            transform: scale(1.08);
+        }
+
+        .gate-slot.occupied-h { background: rgba(0, 240, 255, 0.2); border-color: var(--cyan); color: #fff; }
+        .gate-slot.occupied-x { background: rgba(255, 51, 119, 0.25); border-color: var(--rose); color: #fff; }
+        .gate-slot.occupied-z { background: rgba(157, 78, 221, 0.25); border-color: var(--violet); color: #fff; }
+        .gate-slot.occupied-ctrl { background: #000; border-radius: 50%; width: 16px; height: 16px; border: 2px solid var(--cyan); }
+        .gate-slot.occupied-m { background: rgba(255, 208, 0, 0.2); border-color: var(--yellow); color: var(--yellow); }
+
+        /* Amplitudes Wheels & Histogram */
+        .amplitudes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 12px;
+            margin-top: 1.5rem;
+        }
+
+        .amp-card {
+            background: #0d1226;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 10px;
+            text-align: center;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.82rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .amp-wheel {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            margin: 6px auto;
+            position: relative;
+            background: #080b18;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .amp-needle {
+            position: absolute;
+            width: 2px;
+            height: 18px;
+            background: var(--cyan);
+            top: 4px;
+            transform-origin: bottom center;
+            box-shadow: 0 0 6px var(--cyan);
+            transition: transform 0.4s cubic-bezier(0.1, 0.9, 0.2, 1);
+        }
+
+        /* QPU / Code OpenQASM */
+        pre.code-block {
+            background: #060814;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 1.2rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.88rem;
+            color: #d1dcff;
+            overflow-x: auto;
+            line-height: 1.5;
+        }
+
+        .tag-tech {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin: 4px 4px 4px 0;
+        }
+
+        /* Alertes didactiques */
+        .callout-box {
+            padding: 1.2rem 1.4rem;
+            border-radius: var(--radius-md);
+            margin: 1.2rem 0;
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+        }
+
+        .callout-box.info {
+            background: rgba(0, 240, 255, 0.07);
+            border-left: 4px solid var(--cyan);
+        }
+
+        .callout-box.tip {
+            background: rgba(0, 255, 136, 0.07);
+            border-left: 4px solid var(--green);
+        }
+
+        .callout-box.warning {
+            background: rgba(255, 208, 0, 0.08);
+            border-left: 4px solid var(--yellow);
+        }
+
+        /* Boutons d'action */
+        .action-btn {
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(157, 78, 221, 0.3));
+            border: 1px solid var(--cyan);
+            color: #fff;
+            padding: 10px 22px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.15);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.35);
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.3), rgba(157, 78, 221, 0.45));
+        }
+
+        /* Pied de page */
+        footer {
+            border-top: 1px solid var(--border-subtle);
+            padding: 3rem 1.5rem;
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            nav.nav-tabs { border-radius: var(--radius-md); }
+            .circuit-wires { min-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="hero">
+        <div class="badge-pill">
+            <span class="dot"></span>
+            ESP32-S3 Quantum Console · Saison 3
+        </div>
+        <h1 class="main-title">Un Ordinateur Quantique dans la Main</h1>
+        <p class="hero-sub">
+            Analyse intégrale du projet, architecture microcontrôleur ESP32, décryptage didactique des <strong>types d'équations</strong> du calcul quantique, et simulateurs interactifs en direct.
+        </p>
+    </header>
+
+    <nav class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('tab-vue-ensemble')">🔬 Architecture & Projet</button>
+        <button class="tab-btn" onclick="switchTab('tab-equations')">📐 Le Studio des Équations</button>
+        <button class="tab-btn" onclick="switchTab('tab-sphere')">🌐 Sphère de Bloch Interactive</button>
+        <button class="tab-btn" onclick="switchTab('tab-circuit')">⚡ Simulateur de Circuits & Tirs</button>
+        <button class="tab-btn" onclick="switchTab('tab-ibm')">🚀 Vers IBM Quantum (QASM)</button>
+    </nav>
+
+    <main class="container">
+
+        <!-- ================= ONGLET 1 : ARCHITECTURE & PROJET ================= -->
+        <section id="tab-vue-ensemble" class="tab-content active">
+            <div class="card">
+                <h2 class="card-title">
+                    <span class="icon-badge">🎯</span>
+                    Vue d'ensemble : L'ordinateur quantique de poche ES3C28P
+                </h2>
+                <p>
+                    Ce projet transforme une carte de développement portable <strong>ES3C28P</strong> (ESP32-S3 avec écran tactile 2,8 pouces, codec audio I2S et lecteur microSD) en un <strong>véritable simulateur quantique interactif de poche</strong>. Contrairement à de simples animations statiques, la puce calcule en temps réel le vecteur d'état complet de <strong>5 qubits</strong> (soit 32 amplitudes complexes) à chaque image par interpolation unitaire continue, génère un vrai hasard physique via le bruit radio Wi-Fi, et offre un pont direct vers les vrais processeurs quantiques d'IBM.
+                </p>
+
+                <div class="grid-3" style="margin-top: 1.5rem;">
+                    <div style="background: rgba(0, 240, 255, 0.05); border: 1px solid rgba(0, 240, 255, 0.2); border-radius: var(--radius-md); padding: 1.2rem;">
+                        <h3 style="color: var(--cyan); margin-bottom: 6px; font-size: 1.1rem;">⚡ Processeur Dual-Core</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-muted);">
+                            <strong>Cœur 1 :</strong> Simulation du vecteur d'état, gestion du tactile FT6336 et rendu graphique antialiasé dans un double buffer en PSRAM (8 Mo).<br>
+                            <strong>Cœur 0 :</strong> Push DMA SPI vers l'écran ILI9341 et synthèse sonore I2S (clics de mesure) via codec ES8311.
+                        </p>
+                    </div>
+
+                    <div style="background: rgba(240, 32, 208, 0.05); border: 1px solid rgba(240, 32, 208, 0.2); border-radius: var(--radius-md); padding: 1.2rem;">
+                        <h3 style="color: var(--magenta); margin-bottom: 6px; font-size: 1.1rem;">🎲 Hasard Matériel Réel</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-muted);">
+                            L'effondrement de la fonction d'onde à la mesure s'appuie sur le bruit thermique et électromagnétique capté par l'étage récepteur radio Wi-Fi de l'ESP32 via <code>esp_random()</code>. Pas de pseudo-hasard ! Un mode « graine fixe » permet aussi la reproductibilité en TP.
+                        </p>
+                    </div>
+
+                    <div style="background: rgba(255, 208, 0, 0.05); border: 1px solid rgba(255, 208, 0, 0.2); border-radius: var(--radius-md); padding: 1.2rem;">
+                        <h3 style="color: var(--yellow); margin-bottom: 6px; font-size: 1.1rem;">🔄 Interpolation Unitaire</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-muted);">
+                            Chaque porte $V$ s'anime avec une fluidité absolue grâce à l'application continue de l'opérateur fractionnaire $V^u$ ($u \in [0, 1]$). Le vecteur d'état reste unitaire à 100% à chaque instant, sans approximation visuelle.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Les 6 onglets de l'interface décortiqués -->
+            <div class="card">
+                <h2 class="card-title">
+                    <span class="icon-badge">🖥️</span>
+                    L'Architecture de l'Interface Utilisateur
+                </h2>
+                <p>
+                    L'interface a été conçue pour offrir une immersion physique immédiate dans le monde quantique. Elle s'articule autour de <strong>6 onglets interactifs</strong> :
+                </p>
+
+                <div class="grid-2" style="margin-top: 1.5rem;">
+                    <div style="background: #090d1f; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.2rem;">
+                        <h4 style="color: var(--cyan); margin-bottom: 6px;">1. Onglet Circuit (Éditeur & Défilement Pas-à-Pas)</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-muted);">
+                            Grille de 1 à 5 qubits sur 24 colonnes. Pose intuitive au doigt de portes ($H, X, Y, Z, S, T, R_x, R_y, R_z$, contrôles $\bullet$, swap $\times$ et mesure $M$).
+                            Un faisceau lumineux balaie le circuit en lecture pas-à-pas (▶). En dessous, les jauges d'amplitudes indiquent la probabilité par leur hauteur et la <strong>phase par leur couleur</strong> (cyan = $0$, magenta = $\pi/2$, jaune = $\pi$).
+                        </p>
+                    </div>
+
+                    <div style="background: #090d1f; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.2rem;">
+                        <h4 style="color: var(--yellow); margin-bottom: 6px;">2. Onglet Sphère (Bloch & Décohérence)</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-muted);">
+                            Affiche la sphère de Bloch 3D d'un qubit choisi. Calcule la <strong>matrice densité réduite</strong> $\rho$ : le vecteur a une longueur $|\vec{r}| = 1$ pour un état pur, mais <em>rétrécit vers l'intérieur</em> ($|\vec{r}| < 1$) lorsque le qubit est intriqué avec d'autres ! Comprend un mode Bac à sable pour tester des rotations isolées.
+                        </p>
+                    </div>
+
+                    <div style="background: #090d1f; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.2rem;">
+                        <h4 style="color: var(--green); margin-bottom: 6px;">3. Onglet Mesures (Tirs Statistiques & Bruit QPU)</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-muted);">
+                            Permet d'exécuter 100, 1 000 ou 8 192 tirs Monte-Carlo au rythme de clics audio réalistes. Affiche l'histogramme empirique face à la ligne théorique blanche. Inclut un modèle de <strong>bruit réaliste de QPU</strong> (canal dépolarisant de Pauli à 2% + inversion de lecture à 2,5%).
+                        </p>
+                    </div>
+
+                    <div style="background: #090d1f; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.2rem;">
+                        <h4 style="color: var(--magenta); margin-bottom: 6px;">4. Onglet Algos (15 Algorithmes Célèbres)</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-muted);">
+                            Fiches encyclopédiques animées : Shor, Grover, Transformée de Fourier Quantique (QFT), Deutsch-Jozsa, Bernstein-Vazirani, VQE, QAOA, BB84, Téléportation. Présente le gain algorithmique face aux ordinateurs classiques, l'utilité dans le monde réel et le niveau de maturité actuel.
+                        </p>
+                    </div>
+
+                    <div style="background: #090d1f; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.2rem;">
+                        <h4 style="color: var(--rose); margin-bottom: 6px;">5. Onglet Tuto (L'Épistémologie des Équations)</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-muted);">
+                            18 pages illustrées associant chaque principe physique à la <strong>nature mathématique précise de son équation</strong> (linéaire, quadratique, différentielle, valeurs propres, contrainte unitaire, etc.), avec formules affichées par un moteur typographique vectoriel dédié (<code>formule.cpp</code>).
+                        </p>
+                    </div>
+
+                    <div style="background: #090d1f; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.2rem;">
+                        <h4 style="color: var(--violet); margin-bottom: 6px;">6. Onglet Réglages & Pont QPU (OpenQASM)</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-muted);">
+                            Convertit le circuit édité en code standard <strong>OpenQASM 2.0</strong> et génère un QR code à l'écran. Un simple scan avec un smartphone permet de lancer immédiatement le calcul sur un véritable ordinateur quantique supraconducteur chez IBM Quantum !
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= ONGLET 2 : LE STUDIO DES ÉQUATIONS ================= -->
+        <section id="tab-equations" class="tab-content">
+            <div class="card">
+                <h2 class="card-title">
+                    <span class="icon-badge">📐</span>
+                    Pourquoi classer les équations par types ?
+                </h2>
+                <p>
+                    L'une des innovations pédagogiques majeures de la console ESP32 est de ne pas parachuter la mécanique quantique comme une collection de recettes obscures, mais de <strong>rattacher chaque comportement quantique à une famille mathématique universelle</strong>. Comprendre le type d'une équation permet de savoir immédiatement ce qu'elle <em>prédit</em>, ce qu'elle <em>contraint</em> ou ce qu'elle <em>interdit</em>.
+                </p>
+
+                <div class="callout-box info">
+                    <div>💡</div>
+                    <div>
+                        <strong>Principe didactique :</strong> Une équation linéaire crée la superposition. Une contrainte quadratique borne l'énergie et garantit que la somme des probabilités vaut 100%. Une équation sans solution formalise l'impossibilité de séparer deux particules intriquées. Parcourez ci-dessous les 14 fiches interactives extraites de l'onglet <strong>TUTO</strong> de la console.
+                    </div>
+                </div>
+
+                <div class="grid-2" style="margin-top: 1.5rem; align-items: start;">
+                    <!-- Liste de sélection latérale -->
+                    <div class="eq-sidebar" id="eqListContainer">
+                        <!-- Généré en JS -->
+                    </div>
+
+                    <!-- Visualiseur d'équation dynamique -->
+                    <div class="eq-viewer" id="eqDisplayArea">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="math-badge" id="eqBadge" style="background: rgba(0, 240, 255, 0.2); color: var(--cyan); border: 1px solid var(--cyan);">Équation Linéaire</span>
+                            <span id="eqPageIndicator" style="font-family: 'Fira Code', monospace; font-size: 0.85rem; color: var(--text-dim);">Page 5 / 18</span>
+                        </div>
+
+                        <h3 id="eqTitle" style="font-family: 'Outfit', sans-serif; font-size: 1.45rem; margin-top: 8px; color: #fff;">La Superposition</h3>
+
+                        <div class="math-banner">
+                            <div class="math-eq" id="eqFormula">|ψ⟩ = α|0⟩ + β|1⟩</div>
+                            <div id="eqFormula2" style="font-family: 'Fira Code', monospace; font-size: 0.95rem; color: var(--yellow); margin-top: 6px;"></div>
+                        </div>
+
+                        <canvas id="eqCanvas" width="500" height="220"></canvas>
+
+                        <p id="eqDescription" style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">
+                            Description didactique de l'équation...
+                        </p>
+
+                        <div style="margin-top: 1.2rem; padding: 10px 14px; background: rgba(255, 255, 255, 0.03); border-radius: 8px; border-left: 3px solid var(--cyan);">
+                            <strong style="color: #fff; font-size: 0.88rem;">Implication physique :</strong>
+                            <span id="eqPhysics" style="color: var(--text-muted); font-size: 0.88rem;">...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= ONGLET 3 : SPHÈRE DE BLOCH ================= -->
+        <section id="tab-sphere" class="tab-content">
+            <div class="card">
+                <h2 class="card-title">
+                    <span class="icon-badge">🌐</span>
+                    La Sphère de Bloch & les Rotations Unitaires
+                </h2>
+                <p>
+                    La sphère de Bloch est la représentation géométrique absolue d'un qubit. L'état pur s'écrit sous forme d'équation paramétrique :
+                    <span style="font-family: 'Fira Code', monospace; color: var(--cyan); font-weight: 600;">|ψ⟩ = cos(θ/2)|0⟩ + e^(iφ) sin(θ/2)|1⟩</span>.
+                    Toute porte quantique à 1 qubit n'est rien d'autre qu'une <strong>rotation 3D</strong> d'angle $\theta$ autour d'un axe $\vec{n} = (n_x, n_y, n_z)$.
+                </p>
+
+                <div class="grid-2" style="margin-top: 1.5rem;">
+                    <!-- Canvas 3D de Bloch -->
+                    <div class="bloch-container">
+                        <canvas id="blochCanvas" width="340" height="340"></canvas>
+                        <p style="font-size: 0.8rem; color: var(--text-dim); margin-top: 8px;">
+                            👆 Glissez sur la sphère pour la faire pivoter dans l'espace.
+                        </p>
+                        <div class="bloch-controls">
+                            <button class="gate-btn btn-h" onclick="applyBlochGate('H')">H (Hadamard)</button>
+                            <button class="gate-btn btn-x" onclick="applyBlochGate('X')">X (NON)</button>
+                            <button class="gate-btn btn-x" onclick="applyBlochGate('Y')">Y</button>
+                            <button class="gate-btn btn-z" onclick="applyBlochGate('Z')">Z (Phase π)</button>
+                            <button class="gate-btn btn-z" onclick="applyBlochGate('S')">S (Phase π/2)</button>
+                            <button class="gate-btn btn-z" onclick="applyBlochGate('T')">T (Phase π/4)</button>
+                            <button class="gate-btn" onclick="applyBlochGate('Rx')">Rx(45°)</button>
+                            <button class="gate-btn" onclick="applyBlochGate('Ry')">Ry(45°)</button>
+                            <button class="gate-btn btn-m" onclick="applyBlochGate('M')">⚡ Mesurer</button>
+                            <button class="gate-btn" onclick="resetBloch()">↺ |0⟩</button>
+                        </div>
+                    </div>
+
+                    <!-- Télémétrie mathématique -->
+                    <div>
+                        <div class="telemetry-panel">
+                            <h4 style="color: var(--cyan); margin-bottom: 12px; font-size: 1rem;">Télémétrie de l'État Quantique</h4>
+                            
+                            <div class="telemetry-row">
+                                <span>Coordonnées sphériques :</span>
+                                <span id="telemetryAngles" style="color: var(--yellow);">θ = 0.0° · φ = 0.0°</span>
+                            </div>
+
+                            <div class="telemetry-row">
+                                <span>Vecteur de Bloch [x, y, z] :</span>
+                                <span id="telemetryVector" style="color: #fff;">[0.00, 0.00, 1.00]</span>
+                            </div>
+
+                            <div class="telemetry-row">
+                                <span>Longueur du vecteur |r| :</span>
+                                <span id="telemetryRadius" style="color: var(--green);">1.00 (État pur)</span>
+                            </div>
+
+                            <div style="margin-top: 15px;">
+                                <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+                                    <span>Probabilité P(|0⟩) = |α|² : <strong id="lblP0" style="color: var(--cyan);">100%</strong></span>
+                                    <span>Probabilité P(|1⟩) = |β|² : <strong id="lblP1" style="color: var(--magenta);">0%</strong></span>
+                                </div>
+                                <div class="progress-bar-container">
+                                    <div class="prob-bar-0" id="barP0" style="width: 100%;"></div>
+                                    <div class="prob-bar-1" id="barP1" style="width: 0%;"></div>
+                                </div>
+                            </div>
+
+                            <div class="telemetry-row" style="margin-top: 15px;">
+                                <span>Amplitude complexe α :</span>
+                                <span id="telemetryAlpha" style="color: var(--cyan);">1.000 + 0.000i</span>
+                            </div>
+
+                            <div class="telemetry-row">
+                                <span>Amplitude complexe β :</span>
+                                <span id="telemetryBeta" style="color: var(--magenta);">0.000 + 0.000i</span>
+                            </div>
+                        </div>
+
+                        <div class="card" style="margin-top: 1.2rem; padding: 1.2rem; background: rgba(9, 13, 31, 0.7);">
+                            <h4 style="color: #fff; margin-bottom: 8px; font-size: 0.95rem;">Le Phénomène de Raccourcissement de la Flèche :</h4>
+                            <p style="font-size: 0.88rem; color: var(--text-muted);">
+                                Lorsque deux qubits s'intriquent (comme dans l'état de Bell $\frac{|00\rangle+|11\rangle}{\sqrt{2}}$), aucun des deux qubits ne possède d'état individuel défini. Mathématiquement, la console calcule la <strong>matrice densité réduite</strong> :
+                                <br><code style="color: var(--yellow);">x = 2 Re(ρ₀₁), y = -2 Im(ρ₀₁), z = ρ₀₀ - ρ₁₁</code>.
+                                Sur un qubit intriqué, le rayon $|\vec{r}|$ <strong>tombe à 0</strong> : la flèche s'évanouit au centre de la sphère !
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= ONGLET 4 : CIRCUITS & TIRS ================= -->
+        <section id="tab-circuit" class="tab-content">
+            <div class="card">
+                <h2 class="card-title">
+                    <span class="icon-badge">⚡</span>
+                    Simulateur de Circuit & Expérience Statistique Monte-Carlo
+                </h2>
+                <p>
+                    Construisez un circuit à 2 qubits, visualisez les amplitudes complexes instantanées (représentées sous forme de roues polaires colorées) et lancez 1 000 tirs virtuels pour expérimenter la <strong>nature probabiliste de la règle de Born</strong>.
+                </p>
+
+                <div class="circuit-sandbox">
+                    <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap;">
+                        <span style="font-weight: 600; color: #fff; font-size: 0.9rem;">Préréglages :</span>
+                        <button class="action-btn" style="padding: 6px 14px; font-size: 0.85rem;" onclick="loadPreset('bell')">État de Bell (|00⟩+|11⟩)/√2</button>
+                        <button class="action-btn" style="padding: 6px 14px; font-size: 0.85rem;" onclick="loadPreset('superpos')">Superposition q0</button>
+                        <button class="action-btn" style="padding: 6px 14px; font-size: 0.85rem;" onclick="loadPreset('interf')">Interférence (H-Z-H)</button>
+                        <button class="action-btn" style="padding: 6px 14px; font-size: 0.85rem;" onclick="loadPreset('reset')">Effacer</button>
+                    </div>
+
+                    <div class="circuit-wires" id="circuitWiresContainer">
+                        <!-- Wires and gates slots -->
+                        <div class="circuit-wire-row">
+                            <span class="wire-label">q0</span>
+                            <div class="wire-line" id="wire0">
+                                <div class="gate-slot occupied-h" onclick="cycleGate(0, 0)">H</div>
+                                <div class="gate-slot occupied-ctrl" onclick="cycleGate(0, 1)">●</div>
+                                <div class="gate-slot" onclick="cycleGate(0, 2)">—</div>
+                                <div class="gate-slot occupied-m" onclick="cycleGate(0, 3)">M</div>
+                            </div>
+                        </div>
+
+                        <div class="circuit-wire-row">
+                            <span class="wire-label">q1</span>
+                            <div class="wire-line" id="wire1">
+                                <div class="gate-slot" onclick="cycleGate(1, 0)">—</div>
+                                <div class="gate-slot occupied-x" onclick="cycleGate(1, 1)">X</div>
+                                <div class="gate-slot" onclick="cycleGate(1, 2)">—</div>
+                                <div class="gate-slot occupied-m" onclick="cycleGate(1, 3)">M</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p style="font-size: 0.82rem; color: var(--text-dim);">
+                        💡 Cliquez sur une case pour changer la porte : [ — ] vide, [ H ] Hadamard, [ X ] Pauli-X, [ Z ] Pauli-Z, [ ● ] Contrôle, [ M ] Mesure.
+                    </p>
+                </div>
+
+                <!-- Amplitudes et Roues -->
+                <h3 style="color: #fff; font-size: 1.15rem; margin-top: 1.8rem; margin-bottom: 0.5rem;">
+                    Vecteur d'État : Roues de Phase et Probabilités Théoriques
+                </h3>
+                <div class="amplitudes-grid" id="amplitudesGrid">
+                    <!-- 4 amplitudes pour 2 qubits -->
+                </div>
+
+                <!-- Histogramme Monte-Carlo -->
+                <div style="margin-top: 2rem; background: #080c1d; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <h4 style="color: var(--yellow); font-size: 1.1rem;">Histogramme de Mesures (1 000 Tirs Réalisés)</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-muted);">
+                                L'ESP32 génère des clics I2S et simule l'effondrement stochastique à chaque tir.
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <label style="font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                <input type="checkbox" id="chkNoise" onchange="runSimulation()">
+                                Simuler Bruit QPU (2% erreur)
+                            </label>
+                            <button class="action-btn" onclick="runSimulation()">🎲 Lancer 1 000 Tirs</button>
+                        </div>
+                    </div>
+
+                    <canvas id="histoCanvas" width="700" height="180" style="width: 100%; height: 180px; margin-top: 1rem;"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= ONGLET 5 : VERS IBM QUANTUM ================= -->
+        <section id="tab-ibm" class="tab-content">
+            <div class="card">
+                <h2 class="card-title">
+                    <span class="icon-badge">🚀</span>
+                    Le Pont vers IBM Quantum Composer (OpenQASM 2.0)
+                </h2>
+                <p>
+                    L'un des atouts les plus impressionnants du projet est d'offrir une passerelle directe vers les <strong>véritables calculateurs quantiques supraconducteurs d'IBM</strong> accessibles gratuitement dans le cloud via l'offre IBM Quantum Open.
+                </p>
+
+                <div class="grid-2" style="margin-top: 1.5rem;">
+                    <div>
+                        <h3 style="color: var(--cyan); margin-bottom: 10px; font-size: 1.2rem;">Comment ça marche ?</h3>
+                        <ol style="color: var(--text-muted); font-size: 0.95rem; padding-left: 1.2rem; line-height: 1.8;">
+                            <li>La console compile le circuit édité sous forme de code <strong>OpenQASM 2.0</strong> standardisé.</li>
+                            <li>Elle affiche sur son écran couleur un <strong>QR Code dynamique</strong> contenant l'intégralité du script quantique.</li>
+                            <li>L'utilisateur flashe le QR Code avec son smartphone ou télécharge le fichier <code>.qasm</code> depuis la carte microSD.</li>
+                            <li>Le circuit est collé dans l'éditeur IBM Quantum Composer puis expédié sur une puce cryogénique à 15 millikelvins (ex. <em>ibm_kyiv</em> ou <em>ibm_sherbrooke</em>) !</li>
+                        </ol>
+
+                        <div class="callout-box warning" style="margin-top: 1.2rem;">
+                            <div>⚠️</div>
+                            <div>
+                                <strong>La Réalité du Bruit Physique :</strong><br>
+                                Sur l'ESP32 en mode idéal, l'état de Bell donne exactement 50% de <code>00</code> et 50% de <code>11</code>. Sur un vrai ordinateur quantique, vous constaterez environ 3% à 8% de <code>01</code> et <code>10</code>. Ce sont les erreurs physiques de décohérence et de lecture (SPAM) !
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 style="color: #fff; margin-bottom: 8px; font-size: 1rem;">Code OpenQASM généré pour le circuit actuel :</h4>
+                        <pre class="code-block" id="qasmCodeArea">
+OPENQASM 2.0;
+include "qelib1.inc";
+
+qreg q[2];
+creg c[2];
+
+h q[0];
+cx q[0],q[1];
+barrier q;
+measure q[0] -> c[0];
+measure q[1] -> c[1];
+                        </pre>
+                        <div style="margin-top: 10px; display: flex; gap: 8px;">
+                            <button class="gate-btn" onclick="copyQASM()">📋 Copier le code QASM</button>
+                            <a href="https://quantum.cloud.ibm.com/composer" target="_blank" class="action-btn" style="text-decoration: none; padding: 6px 16px; font-size: 0.85rem;">Ouvrir IBM Quantum Composer ↗</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>Projet ESP32 Ordinateur Quantique (ES3C28P) · Moteur de simulation vectoriel & didactique des équations</p>
+        <p style="margin-top: 6px; font-size: 0.8rem;">Conçu pour l'apprentissage interactif de la mécanique et de l'informatique quantique.</p>
+    </footer>
+
+    <!-- LOGIQUE JAVASCRIPT DU TUTORIEL ET DES SIMULATEURS -->
+    <script>
+        // ================= GESTION DES ONGLETS =================
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+
+            if (tabId === 'tab-sphere') {
+                drawBloch();
+            } else if (tabId === 'tab-equations') {
+                updateEquationViewer();
+            } else if (tabId === 'tab-circuit') {
+                runSimulation();
+            }
+        }
+
+        // ================= BASE DE DONNÉES DES ÉQUATIONS (TUTO ESP32) =================
+        const EQUATIONS_DATA = [
+            {
+                id: 1,
+                page: "Page 4 / 18",
+                title: "Une porte = une impulsion",
+                badge: "Équation de Rabi",
+                badgeColor: "var(--cyan)",
+                formula: "θ = Ω · t",
+                formula2: "P(|1⟩) = sin²(Ω t / 2)",
+                desc: "Dans un vrai processeur quantique supraconducteur ou à ions piégés, une porte logique n'est pas un circuit de silicium mais une impulsion électromagnétique ultra-précise (micro-onde à 5 GHz ou laser optique). L'angle de rotation θ sur la sphère de Bloch est le produit de la pulsation de Rabi Ω (puissance de l'impulsion) par sa durée t. La phase de l'onde choisit l'axe de rotation.",
+                physics: "Un demi-tour (porte X) nécessite une impulsion d'environ 20 nanosecondes calibrée pour atteindre exactement θ = π.",
+                render: function(ctx, w, h, t) {
+                    ctx.clearRect(0, 0, w, h);
+                    const yc = h / 2;
+                    ctx.strokeStyle = '#00f0ff';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    const cyc = (t * 0.001) % 2;
+                    for (let x = 0; x < w; x++) {
+                        const f = x / w;
+                        const envelope = Math.exp(-Math.pow((f - 0.5) / 0.15, 2));
+                        const y = yc - envelope * 65 * Math.sin(f * 45 - t * 0.008);
+                        if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                    }
+                    ctx.stroke();
+
+                    // Affichage de l'angle courant
+                    const angle = Math.round((Math.sin(t * 0.002) * 0.5 + 0.5) * 180);
+                    ctx.fillStyle = '#ffd000';
+                    ctx.font = '14px Fira Code';
+                    ctx.fillText(`Impulsion micro-onde en cours : θ = ${angle}°`, 20, 30);
+                }
+            },
+            {
+                id: 2,
+                page: "Page 5 / 18",
+                title: "La Superposition",
+                badge: "Équation Linéaire",
+                badgeColor: "var(--cyan)",
+                formula: "|ψ⟩ = α|0⟩ + β|1⟩",
+                formula2: "α, β ∈ ℂ",
+                desc: "L'état d'un qubit est un vecteur vivant dans un espace de Hilbert complexe de dimension 2. C'est une combinaison linéaire pure des deux états de base |0⟩ et |1⟩. Contrairement à un bit classique qui vaut 0 OU 1, le qubit explore l'espace continu défini par les coefficients α et β (les amplitudes de probabilité).",
+                physics: "La linéarité de l'équation garantit le principe fondamental d'interférence et le théorème de non-clonage quantique.",
+                render: function(ctx, w, h, t) {
+                    ctx.clearRect(0, 0, w, h);
+                    const ox = 70, oy = h - 40, R = 130;
+                    ctx.strokeStyle = '#54657e';
+                    ctx.lineWidth = 1.5;
+                    // Axes
+                    ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox, oy - R); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox + R, oy); ctx.stroke();
+                    ctx.fillStyle = '#00f0ff'; ctx.font = '13px Fira Code'; ctx.fillText('|0⟩', ox - 28, oy - R + 10);
+                    ctx.fillStyle = '#f020d0'; ctx.fillText('|1⟩', ox + R + 8, oy + 4);
+
+                    const th = 0.8 + 0.6 * Math.sin(t * 0.0015);
+                    const px = ox + R * Math.sin(th);
+                    const py = oy - R * Math.cos(th);
+
+                    ctx.strokeStyle = '#ffd000';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(px, py); ctx.stroke();
+
+                    ctx.fillStyle = '#ffd000';
+                    ctx.beginPath(); ctx.arc(px, py, 6, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillText(`|ψ⟩ (α = ${Math.cos(th).toFixed(2)}, β = ${Math.sin(th).toFixed(2)})`, px + 10, py - 5);
+                }
+            },
+            {
+                id: 3,
+                page: "Page 6 / 18",
+                title: "Normalisation & Règle de Born",
+                badge: "Équation Quadratique",
+                badgeColor: "var(--green)",
+                formula: "|α|² + |β|² = 1",
+                formula2: "P(0) = |α|²       P(1) = |β|²",
+                desc: "Pour passer des amplitudes mathématiques abstraites aux probabilités observables expérimentalement, on élève le module au carré (règle énoncée par Max Born en 1926). La conservation de la probabilité totale impose une contrainte quadratique stricte : la somme des carrés des modules doit valoir exactement 100%.",
+                physics: "C'est cette non-linéarité quadratique lors de la mesure qui fait 's'effondrer' la superposition continue en un résultat discret.",
+                render: function(ctx, w, h, t) {
+                    ctx.clearRect(0, 0, w, h);
+                    const th = (Math.sin(t * 0.0018) + 1) * 0.5;
+                    const p0 = th;
+                    const p1 = 1 - th;
+
+                    const bx = 40, by = 50, bw = w - 80, bh = 35;
+                    ctx.fillStyle = '#11172e';
+                    ctx.fillRect(bx, by, bw, bh);
+
+                    ctx.fillStyle = '#00f0ff';
+                    ctx.fillRect(bx, by, bw * p0, bh);
+                    ctx.fillStyle = '#f020d0';
+                    ctx.fillRect(bx + bw * p0, by, bw * p1, bh);
+
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '13px Fira Code';
+                    ctx.fillText(`P(|0⟩) = ${(p0 * 100).toFixed(1)}%`, bx + 10, by + 22);
+                    ctx.fillText(`P(|1⟩) = ${(p1 * 100).toFixed(1)}%`, bx + bw - 140, by + 22);
+
+                    ctx.fillStyle = '#00ff88';
+                    ctx.font = '14px Outfit';
+                    ctx.fillText('Contrainte absolue : P(0) + P(1) ≡ 1.00 (100%)', 40, 120);
+
+                    // Pluie de mesures
+                    const count = 12;
+                    for (let i = 0; i < count; i++) {
+                        const x = bx + (i * bw) / count + 15;
+                        const bit = ((i * 7 + Math.floor(t * 0.003)) % 10) / 10 < p0 ? '0' : '1';
+                        ctx.fillStyle = bit === '0' ? '#00f0ff' : '#f020d0';
+                        ctx.font = '16px Fira Code';
+                        ctx.fillText(bit, x, 165);
+                    }
+                    ctx.fillStyle = '#8b9bb4';
+                    ctx.font = '12px Inter';
+                    ctx.fillText('Échantillonnage stochastique en direct (clics de mesure)', 40, 195);
+                }
+            },
+            {
+                id: 4,
+                page: "Page 8 / 18",
+                title: "La Phase & Formule d'Euler",
+                badge: "Identité Complexe",
+                badgeColor: "var(--magenta)",
+                formula: "e^{iφ} = cos φ + i sin φ",
+                formula2: "Phase relative : |ψ⟩ = (|0⟩ + e^{iφ}|1⟩) / √2",
+                desc: "La phase quantique relative φ correspond à une rotation autour de l'axe vertical Z de la sphère de Bloch. Bien qu'elle soit invisible lors d'une mesure directe (car |e^{iφ}|² = 1), elle est le moteur des interférences quantiques constructives et destructives qui font fonctionner les algorithmes de Shor et Grover.",
+                physics: "Dans les puces supraconductrices, changer la phase d'un qubit se fait en 0 nanoseconde de manière purement logicielle (porte Z virtuelle) !",
+                render: function(ctx, w, h, t) {
+                    ctx.clearRect(0, 0, w, h);
+                    const cx = 90, cy = h / 2, r = 55;
+                    ctx.strokeStyle = '#54657e';
+                    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(cx - r - 10, cy); ctx.lineTo(cx + r + 10, cy); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(cx, cy - r - 10); ctx.lineTo(cx, cy + r + 10); ctx.stroke();
+
+                    const phi = t * 0.002;
+                    const px = cx + r * Math.cos(phi);
+                    const py = cy - r * Math.sin(phi);
+
+                    ctx.strokeStyle = '#00f0ff';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(px, py); ctx.stroke();
+
+                    // Déroulement temporel à droite
+                    const x0 = 190, x1 = w - 30;
+                    ctx.strokeStyle = '#00f0ff';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    for (let x = x0; x < x1; x++) {
+                        const angle = phi - (x - x0) * 0.05;
+                        const y = cy - 40 * Math.sin(angle);
+                        if (x === x0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                    }
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#00f0ff';
+                    ctx.font = '13px Fira Code';
+                    ctx.fillText(`φ = ${((phi % (Math.PI*2)) * 180 / Math.PI).toFixed(0)}°`, cx - 25, cy + r + 24);
+                    ctx.fillText('Onde sinusoïdale de phase e^(iφ)', x0, cy - 50);
+                }
+            },
+            {
+                id: 5,
+                page: "Page 10 / 18",
+                title: "Unitarité : La Réversibilité",
+                badge: "Équation de Contrainte",
+                badgeColor: "var(--violet)",
+                formula: "U^{†} U = I",
+                formula2: "U^{†} = (U^{*})^{T} (Transposée conjuguée)",
+                desc: "En dehors de l'acte de mesure, toute transformation quantique U doit être unitaire. Cela implique que l'information n'est jamais détruite au cours du calcul : chaque porte possède un inverse exact U† qui permet de remonter le temps et de restituer l'état initial. La mesure projective est la seule étape irréversible.",
+                physics: "L'unitarité impose la conservation stricte de la norme géométrique du vecteur d'état dans l'espace de Hilbert.",
+                render: function(ctx, w, h, t) {
+                    ctx.clearRect(0, 0, w, h);
+                    const phase = (t * 0.001) % 2; // 0..1 : aller, 1..2 : retour
+                    const u = phase < 1 ? phase : (2 - phase);
+
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '14px Outfit';
+                    ctx.fillText(phase < 1 ? 'Action de U : transformation vers la superposition' : 'Action de U† : retour parfait à l\'état initial', 30, 30);
+
+                    // Affichage des deux matrices
+                    ctx.fillStyle = '#00f0ff';
+                    ctx.font = '13px Fira Code';
+                    ctx.fillText('U = [[cos θ/2, -sin θ/2], [sin θ/2, cos θ/2]]', 30, 80);
+                    ctx.fillText('U† · U = [[1, 0], [0, 1]] ≡ Identité', 30, 115);
+
+                    const barW = 200 * u;
+                    ctx.fillStyle = phase < 1 ? '#00f0ff' : '#f020d0';
+                    ctx.fillRect(30, 150, barW, 25);
+                    ctx.strokeStyle = '#fff';
+                    ctx.strokeRect(30, 150, 200, 25);
+                    ctx.fillStyle = '#ffd000';
+                    ctx.fillText(`Progression : ${(u * 100).toFixed(0)}%`, 245, 168);
+                }
+            },
+            {
+                id: 6,
+                page: "Page 13 / 18",
+                title: "L'Intrication Quantique",
+                badge: "Équation Sans Solution",
+                badgeColor: "var(--rose)",
+                formula: "(|00⟩ + |11⟩)/√2  ≠  |a⟩ ⊗ |b⟩",
+                formula2: "Système impossible : a₀b₁ = 0, a₁b₀ = 0, mais a₀b₀ ≠ 0",
+                desc: "L'intrication n'est pas un mystère magique : c'est un théorème algébrique limpide ! Un état à deux qubits est dit intriqué lorsqu'il est mathématiquement impossible de l'écrire comme un produit tensoriel de deux états indépendants. Les deux particules forment un système inséparable : mesurer l'une détermine instantanément l'autre.",
+                physics: "C'est l'essence du paradoxe EPR et des inégalités de Bell vérifiées par Alain Aspect (Prix Nobel 2022).",
+                render: function(ctx, w, h, t) {
+                    ctx.clearRect(0, 0, w, h);
+                    const xA = 80, xB = w - 80, cy = h / 2;
+                    const cycle = (t * 0.001) % 2;
+                    const measured = cycle > 1;
+                    const bit = (Math.floor(t * 0.0005) % 2);
+
+                    // Onde de corrélation
+                    ctx.strokeStyle = '#9d4edd';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    for (let x = xA; x < xB; x++) {
+                        const y = cy + 12 * Math.sin((x - xA) * 0.08 - t * 0.005);
+                        if (x === xA) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                    }
+                    ctx.stroke();
+
+                    // Particule A
+                    ctx.fillStyle = measured ? (bit ? '#f020d0' : '#00f0ff') : '#ffd000';
+                    ctx.beginPath(); ctx.arc(xA, cy, 22, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#000'; ctx.font = 'bold 15px Fira Code';
+                    ctx.fillText(measured ? bit : '?', xA - 6, cy + 5);
+
+                    // Particule B
+                    ctx.fillStyle = measured ? (bit ? '#f020d0' : '#00f0ff') : '#ffd000';
+                    ctx.beginPath(); ctx.arc(xB, cy, 22, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#000';
+                    ctx.fillText(measured ? bit : '?', xB - 6, cy + 5);
+
+                    ctx.fillStyle = '#fff'; ctx.font = '13px Outfit';
+                    ctx.fillText('Qubit A', xA - 25, cy - 35);
+                    ctx.fillText('Qubit B', xB - 25, cy - 35);
+
+                    ctx.fillStyle = measured ? '#00ff88' : '#8b9bb4';
+                    ctx.fillText(measured ? `Résultats parfaitement corrélés : ${bit}${bit}` : 'États superposés sans valeur locale définie', w / 2 - 120, h - 25);
+                }
+            },
+            {
+                id: 7,
+                page: "Page 15 / 18",
+                title: "L'Équation de Schrödinger",
+                badge: "Équation Différentielle",
+                badgeColor: "var(--green)",
+                formula: "iħ  d|ψ⟩/dt = Ĥ |ψ⟩",
+                formula2: "Solution continue : |ψ(t)⟩ = exp(-iĤt/ħ) |ψ(0)⟩",
+                desc: "L'équation fondamentale de la dynamique quantique. Elle exprime la dérivée temporelle du vecteur d'état en fonction de l'Hamiltonien Ĥ (l'opérateur représentant l'énergie totale du système). Sa solution mathématique est une exponentielle complexe d'opérateur, prouvant que toute évolution naturelle est une rotation continue.",
+                physics: "La précession de Larmor (un spin tournant autour d'un champ magnétique externe) découle directement de cette équation.",
+                render: function(ctx, w, h, t) {
+                    ctx.clearRect(0, 0, w, h);
+                    const cx = w / 2, cy = h / 2, r = 60;
+                    ctx.strokeStyle = '#54657e';
+                    ctx.beginPath(); ctx.ellipse(cx, cy, r, r * 0.45, 0, 0, Math.PI * 2); ctx.stroke();
+
+                    const angle = t * 0.002;
+                    const px = cx + r * Math.cos(angle);
+                    const py = cy + r * 0.45 * Math.sin(angle);
+
+                    ctx.strokeStyle = '#00ff88';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(px, py); ctx.stroke();
+
+                    // Champ B vertical
+                    ctx.strokeStyle = '#ff3377';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.moveTo(cx, cy + 60); ctx.lineTo(cx, cy - 70); ctx.stroke();
+                    ctx.fillStyle = '#ff3377'; ctx.font = 'bold 14px Fira Code'; ctx.fillText('Champ B (Axe Z)', cx + 10, cy - 60);
+
+                    ctx.fillStyle = '#00ff88';
+                    ctx.fillText('Précession continue de spin', 30, 30);
+                }
+            },
+            {
+                id: 8,
+                page: "Page 17 / 18",
+                title: "Interférence & Algorithme de Grover",
+                badge: "Équation Trigonométrique",
+                badgeColor: "var(--yellow)",
+                formula: "P_{k} = sin²((2k + 1)θ)",
+                formula2: "avec sin θ = 1 / √N  (accélération quadratique √N)",
+                desc: "Dans une recherche non structurée parmi N éléments, un ordinateur classique doit tester N/2 tiroirs en moyenne. Grover effectue une chorégraphie d'interférences constructives : chaque tour amplifie géométriquement l'amplitude de l'élément recherché selon une équation purement trigonométrique, trouvant la cible en seulement π/4 √N itérations !",
+                physics: "Pour 1 million de données, Grover trouve la cible en environ 785 étapes au lieu de 500 000.",
+                render: function(ctx, w, h, t) {
+                    ctx.clearRect(0, 0, w, h);
+                    const step = Math.floor((t * 0.0008) % 3); // 0, 1, 2 tours
+                    const N = 8;
+                    const th = Math.asin(1 / Math.sqrt(N));
+                    const goodAmp = Math.sin((2 * step + 1) * th);
+                    const otherAmp = Math.sqrt((1 - goodAmp * goodAmp) / (N - 1));
+
+                    const barW = (w - 80) / N;
+                    const targetIdx = 5;
+
+                    for (let i = 0; i < N; i++) {
+                        const isTarget = i === targetIdx;
+                        const amp = isTarget ? goodAmp : otherAmp;
+                        const barH = amp * amp * 120;
+                        const x = 40 + i * barW;
+                        const y = h - 35 - barH;
+
+                        ctx.fillStyle = isTarget ? '#ffd000' : '#00f0ff';
+                        ctx.fillRect(x + 4, y, barW - 8, barH);
+                        ctx.fillStyle = '#8b9bb4';
+                        ctx.font = '11px Fira Code';
+                        ctx.fillText(i.toString(2).padStart(3, '0'), x + 6, h - 15);
+                    }
+
+                    ctx.fillStyle = '#ffd000';
+                    ctx.font = '14px Outfit';
+                    ctx.fillText(`Itération ${step} : Probabilité de la cible = ${(goodAmp * goodAmp * 100).toFixed(1)}%`, 40, 30);
+                }
+            }
+        ];
+
+        let currentEqIndex = 0;
+
+        function initEquationList() {
+            const container = document.getElementById('eqListContainer');
+            container.innerHTML = '';
+            EQUATIONS_DATA.forEach((eq, idx) => {
+                const btn = document.createElement('div');
+                btn.className = `eq-item-btn ${idx === 0 ? 'active' : ''}`;
+                btn.onclick = () => selectEquation(idx);
+                btn.innerHTML = `
+                    <div>
+                        <span class="eq-num">#${eq.id}</span>
+                        <strong style="color: #fff; font-size: 0.9rem;">${eq.title}</strong>
+                    </div>
+                    <span class="eq-badge-mini" style="background: rgba(0, 240, 255, 0.15); color: ${eq.badgeColor}; border: 1px solid ${eq.badgeColor};">${eq.badge}</span>
+                `;
+                container.appendChild(btn);
+            });
+        }
+
+        function selectEquation(idx) {
+            currentEqIndex = idx;
+            document.querySelectorAll('.eq-item-btn').forEach((el, i) => {
+                el.classList.toggle('active', i === idx);
+            });
+            updateEquationViewer();
+        }
+
+        function updateEquationViewer() {
+            const eq = EQUATIONS_DATA[currentEqIndex];
+            document.getElementById('eqBadge').innerText = eq.badge;
+            document.getElementById('eqBadge').style.borderColor = eq.badgeColor;
+            document.getElementById('eqBadge').style.color = eq.badgeColor;
+            document.getElementById('eqPageIndicator').innerText = eq.page;
+            document.getElementById('eqTitle').innerText = eq.title;
+            document.getElementById('eqFormula').innerText = eq.formula;
+            document.getElementById('eqFormula2').innerText = eq.formula2;
+            document.getElementById('eqDescription').innerText = eq.desc;
+            document.getElementById('eqPhysics').innerText = eq.physics;
+        }
+
+        function animateEquationCanvas(timestamp) {
+            const canvas = document.getElementById('eqCanvas');
+            if (canvas && canvas.offsetParent !== null) {
+                const ctx = canvas.getContext('2d');
+                EQUATIONS_DATA[currentEqIndex].render(ctx, canvas.width, canvas.height, timestamp);
+            }
+            requestAnimationFrame(animateEquationCanvas);
+        }
+
+        // ================= SPHERE DE BLOCH 3D =================
+        let blochTheta = 0;    // Latitude (0 = |0⟩, PI = |1⟩)
+        let blochPhi = 0;      // Longitude
+        let sphereRotY = 0.5;  // Vue caméra
+        let sphereRotX = 0.35;
+        let isDraggingSphere = false;
+        let lastMouseX = 0, lastMouseY = 0;
+
+        function initBlochCanvas() {
+            const canvas = document.getElementById('blochCanvas');
+            canvas.addEventListener('mousedown', (e) => {
+                isDraggingSphere = true;
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+            });
+            window.addEventListener('mouseup', () => isDraggingSphere = false);
+            window.addEventListener('mousemove', (e) => {
+                if (!isDraggingSphere) return;
+                const dx = e.clientX - lastMouseX;
+                const dy = e.clientY - lastMouseY;
+                sphereRotY += dx * 0.01;
+                sphereRotX += dy * 0.01;
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+                drawBloch();
+            });
+
+            // Touch events for mobile
+            canvas.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    isDraggingSphere = true;
+                    lastMouseX = e.touches[0].clientX;
+                    lastMouseY = e.touches[0].clientY;
+                }
+            });
+            window.addEventListener('touchend', () => isDraggingSphere = false);
+            window.addEventListener('touchmove', (e) => {
+                if (!isDraggingSphere || e.touches.length !== 1) return;
+                const dx = e.touches[0].clientX - lastMouseX;
+                const dy = e.touches[0].clientY - lastMouseY;
+                sphereRotY += dx * 0.015;
+                sphereRotX += dy * 0.015;
+                lastMouseX = e.touches[0].clientX;
+                lastMouseY = e.touches[0].clientY;
+                drawBloch();
+            });
+        }
+
+        function project3D(x, y, z, cx, cy, r) {
+            // Rotation Y
+            const cosY = Math.cos(sphereRotY), sinY = Math.sin(sphereRotY);
+            const x1 = x * cosY + z * sinY;
+            const z1 = -x * sinY + z * cosY;
+
+            // Rotation X
+            const cosX = Math.cos(sphereRotX), sinX = Math.sin(sphereRotX);
+            const y2 = y * cosX - z1 * sinX;
+            const z2 = y * sinX + z1 * cosX;
+
+            return {
+                px: cx + x1 * r,
+                py: cy - y2 * r,
+                depth: z2
+            };
+        }
+
+        function drawBloch() {
+            const canvas = document.getElementById('blochCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width, h = canvas.height;
+            const cx = w / 2, cy = h / 2, r = 115;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Contour sphère
+            ctx.strokeStyle = 'rgba(0, 240, 255, 0.25)';
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Équateur
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.beginPath();
+            for (let a = 0; a <= Math.PI * 2; a += 0.1) {
+                const p = project3D(Math.cos(a), 0, Math.sin(a), cx, cy, r);
+                if (a === 0) ctx.moveTo(p.px, p.py); else ctx.lineTo(p.px, p.py);
+            }
+            ctx.stroke();
+
+            // Axes X, Y, Z
+            const o = project3D(0, 0, 0, cx, cy, r);
+            const axZ = project3D(0, 1.25, 0, cx, cy, r);
+            const axX = project3D(1.25, 0, 0, cx, cy, r);
+            const axY = project3D(0, 0, 1.25, cx, cy, r);
+
+            // Axe Z (|0⟩ / |1⟩)
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.beginPath(); ctx.moveTo(o.px, o.py); ctx.lineTo(axZ.px, axZ.py); ctx.stroke();
+            ctx.fillStyle = '#00f0ff'; ctx.font = '13px Fira Code'; ctx.fillText('|0⟩', axZ.px - 10, axZ.py - 6);
+
+            const axZneg = project3D(0, -1.25, 0, cx, cy, r);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.beginPath(); ctx.moveTo(o.px, o.py); ctx.lineTo(axZneg.px, axZneg.py); ctx.stroke();
+            ctx.fillStyle = '#f020d0'; ctx.fillText('|1⟩', axZneg.px - 10, axZneg.py + 16);
+
+            // Vecteur d'état quantique
+            const vx = Math.sin(blochTheta) * Math.cos(blochPhi);
+            const vy = Math.cos(blochTheta);
+            const vz = Math.sin(blochTheta) * Math.sin(blochPhi);
+
+            const arrow = project3D(vx, vy, vz, cx, cy, r);
+
+            // Trait du vecteur
+            ctx.strokeStyle = '#ffd000';
+            ctx.lineWidth = 3.5;
+            ctx.shadowColor = '#ffd000';
+            ctx.shadowBlur = 12;
+            ctx.beginPath();
+            ctx.moveTo(o.px, o.py);
+            ctx.lineTo(arrow.px, arrow.py);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // Pointe de flèche
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(arrow.px, arrow.py, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            updateBlochTelemetry(vx, vy, vz);
+        }
+
+        function updateBlochTelemetry(vx, vy, vz) {
+            const p0 = Math.pow(Math.cos(blochTheta / 2), 2);
+            const p1 = Math.pow(Math.sin(blochTheta / 2), 2);
+
+            const alphaRe = Math.cos(blochTheta / 2);
+            const betaRe = Math.sin(blochTheta / 2) * Math.cos(blochPhi);
+            const betaIm = Math.sin(blochTheta / 2) * Math.sin(blochPhi);
+
+            const thDeg = (blochTheta * 180 / Math.PI).toFixed(1);
+            const phDeg = (((blochPhi % (Math.PI*2)) + Math.PI*2) % (Math.PI*2) * 180 / Math.PI).toFixed(1);
+
+            document.getElementById('telemetryAngles').innerText = `θ = ${thDeg}° · φ = ${phDeg}°`;
+            document.getElementById('telemetryVector').innerText = `[${vx.toFixed(2)}, ${vz.toFixed(2)}, ${vy.toFixed(2)}]`;
+            document.getElementById('lblP0').innerText = `${(p0 * 100).toFixed(1)}%`;
+            document.getElementById('lblP1').innerText = `${(p1 * 100).toFixed(1)}%`;
+            document.getElementById('barP0').style.width = `${p0 * 100}%`;
+            document.getElementById('barP1').style.width = `${p1 * 100}%`;
+
+            document.getElementById('telemetryAlpha').innerText = `${alphaRe.toFixed(3)} + 0.000i`;
+            document.getElementById('telemetryBeta').innerText = `${betaRe.toFixed(3)} ${betaIm >= 0 ? '+' : '-'} ${Math.abs(betaIm).toFixed(3)}i`;
+        }
+
+        function applyBlochGate(gate) {
+            switch(gate) {
+                case 'H':
+                    // Hadamard : échange les axes Z et X (rotation de pi autour de (X+Z)/sqrt(2))
+                    if (Math.abs(blochTheta) < 0.05) { blochTheta = Math.PI / 2; blochPhi = 0; }
+                    else if (Math.abs(blochTheta - Math.PI) < 0.05) { blochTheta = Math.PI / 2; blochPhi = Math.PI; }
+                    else if (Math.abs(blochTheta - Math.PI / 2) < 0.05 && Math.abs(blochPhi) < 0.1) { blochTheta = 0; }
+                    else { blochTheta = Math.PI - blochTheta; }
+                    break;
+                case 'X':
+                    blochTheta = Math.PI - blochTheta;
+                    blochPhi = -blochPhi;
+                    break;
+                case 'Y':
+                    blochTheta = Math.PI - blochTheta;
+                    blochPhi = Math.PI - blochPhi;
+                    break;
+                case 'Z':
+                    blochPhi += Math.PI;
+                    break;
+                case 'S':
+                    blochPhi += Math.PI / 2;
+                    break;
+                case 'T':
+                    blochPhi += Math.PI / 4;
+                    break;
+                case 'Rx':
+                    blochTheta += Math.PI / 4;
+                    break;
+                case 'Ry':
+                    blochTheta += Math.PI / 4;
+                    blochPhi += Math.PI / 2;
+                    break;
+                case 'M':
+                    // Mesure : tirage au sort physique selon Born
+                    const p1 = Math.pow(Math.sin(blochTheta / 2), 2);
+                    const outcome = Math.random() < p1 ? 1 : 0;
+                    blochTheta = outcome === 1 ? Math.PI : 0;
+                    blochPhi = 0;
+                    break;
+            }
+            drawBloch();
+        }
+
+        function resetBloch() {
+            blochTheta = 0;
+            blochPhi = 0;
+            drawBloch();
+        }
+
+        // ================= SIMULATEUR DE CIRCUIT QUANTIQUE =================
+        const circuitGrid = [
+            ['H', '●', '—', 'M'],
+            ['—', 'X', '—', 'M']
+        ];
+
+        function loadPreset(preset) {
+            if (preset === 'bell') {
+                circuitGrid[0] = ['H', '●', '—', 'M'];
+                circuitGrid[1] = ['—', 'X', '—', 'M'];
+            } else if (preset === 'superpos') {
+                circuitGrid[0] = ['H', '—', '—', 'M'];
+                circuitGrid[1] = ['—', '—', '—', '—'];
+            } else if (preset === 'interf') {
+                circuitGrid[0] = ['H', 'Z', 'H', 'M'];
+                circuitGrid[1] = ['—', '—', '—', '—'];
+            } else if (preset === 'reset') {
+                circuitGrid[0] = ['—', '—', '—', '—'];
+                circuitGrid[1] = ['—', '—', '—', '—'];
+            }
+            renderCircuitUI();
+            runSimulation();
+        }
+
+        function cycleGate(qubit, col) {
+            const sequence = ['—', 'H', 'X', 'Z', '●', 'M'];
+            const cur = circuitGrid[qubit][col];
+            let nextIdx = (sequence.indexOf(cur) + 1) % sequence.length;
+            circuitGrid[qubit][col] = sequence[nextIdx];
+            renderCircuitUI();
+            runSimulation();
+        }
+
+        function renderCircuitUI() {
+            for (let q = 0; q < 2; q++) {
+                const wire = document.getElementById(`wire${q}`);
+                wire.innerHTML = '';
+                for (let c = 0; c < 4; c++) {
+                    const gate = circuitGrid[q][c];
+                    const slot = document.createElement('div');
+                    let className = 'gate-slot';
+                    if (gate === 'H') className += ' occupied-h';
+                    else if (gate === 'X') className += ' occupied-x';
+                    else if (gate === 'Z') className += ' occupied-z';
+                    else if (gate === '●') className += ' occupied-ctrl';
+                    else if (gate === 'M') className += ' occupied-m';
+
+                    slot.className = className;
+                    slot.innerText = gate;
+                    slot.onclick = () => cycleGate(q, c);
+                    wire.appendChild(slot);
+                }
+            }
+        }
+
+        // Calcul exact d'amplitudes pour 2 qubits
+        function runSimulation() {
+            // État initial |00⟩ = [1, 0, 0, 0]
+            let state = [
+                { re: 1, im: 0 },
+                { re: 0, im: 0 },
+                { re: 0, im: 0 },
+                { re: 0, im: 0 }
+            ];
+
+            // Évaluation colonne par colonne
+            for (let c = 0; c < 4; c++) {
+                const g0 = circuitGrid[0][c];
+                const g1 = circuitGrid[1][c];
+
+                // CNOT : contrôle sur q0, cible sur q1
+                if (g0 === '●' && g1 === 'X') {
+                    // échange |10⟩ et |11⟩
+                    const tmp = state[2];
+                    state[2] = state[3];
+                    state[3] = tmp;
+                    continue;
+                }
+
+                // Portes indépendantes à 1 qubit
+                if (g0 === 'H') state = apply1QGate(state, 0, 'H');
+                if (g0 === 'X') state = apply1QGate(state, 0, 'X');
+                if (g0 === 'Z') state = apply1QGate(state, 0, 'Z');
+
+                if (g1 === 'H') state = apply1QGate(state, 1, 'H');
+                if (g1 === 'X') state = apply1QGate(state, 1, 'X');
+                if (g1 === 'Z') state = apply1QGate(state, 1, 'Z');
+            }
+
+            // Calcul probabilités théoriques
+            const probs = state.map(a => a.re * a.re + a.im * a.im);
+
+            renderAmplitudesUI(state, probs);
+            drawHistogram(probs);
+            generateQASM();
+        }
+
+        function apply1QGate(st, qubit, gate) {
+            const res = [ {re:0,im:0}, {re:0,im:0}, {re:0,im:0}, {re:0,im:0} ];
+            const bit = 1 << qubit;
+            const invSqrt2 = 0.70710678;
+
+            for (let i = 0; i < 4; i++) {
+                if (i & bit) continue;
+                const j = i | bit;
+                const a0 = st[i], a1 = st[j];
+
+                if (gate === 'H') {
+                    res[i] = { re: invSqrt2 * (a0.re + a1.re), im: invSqrt2 * (a0.im + a1.im) };
+                    res[j] = { re: invSqrt2 * (a0.re - a1.re), im: invSqrt2 * (a0.im - a1.im) };
+                } else if (gate === 'X') {
+                    res[i] = a1;
+                    res[j] = a0;
+                } else if (gate === 'Z') {
+                    res[i] = a0;
+                    res[j] = { re: -a1.re, im: -a1.im };
+                }
+            }
+            return res;
+        }
+
+        function renderAmplitudesUI(state, probs) {
+            const container = document.getElementById('amplitudesGrid');
+            container.innerHTML = '';
+            const labels = ['|00⟩', '|01⟩', '|10⟩', '|11⟩'];
+
+            state.forEach((amp, idx) => {
+                const angle = Math.atan2(amp.im, amp.re);
+                const angleDeg = ((angle * 180 / Math.PI) + 360) % 360;
+                const p = (probs[idx] * 100).toFixed(1);
+
+                const card = document.createElement('div');
+                card.className = 'amp-card';
+                card.innerHTML = `
+                    <div style="font-weight:700; color:#fff;">${labels[idx]}</div>
+                    <div class="amp-wheel">
+                        <div class="amp-needle" style="transform: rotate(${angleDeg}deg);"></div>
+                    </div>
+                    <div style="color:var(--cyan);">${p}%</div>
+                    <div style="font-size:0.75rem; color:var(--text-dim);">${amp.re.toFixed(2)}${amp.im >= 0 ? '+' : ''}${amp.im.toFixed(2)}i</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function drawHistogram(probs) {
+            const canvas = document.getElementById('histoCanvas');
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width, h = canvas.height;
+            ctx.clearRect(0, 0, w, h);
+
+            const hasNoise = document.getElementById('chkNoise').checked;
+            const shots = 1000;
+            const counts = [0, 0, 0, 0];
+
+            // Simulation de 1000 tirs physiques avec ou sans bruit QPU
+            for (let i = 0; i < shots; i++) {
+                let p = [...probs];
+                if (hasNoise) {
+                    // Ajout d'erreur dépolarisante de 2.5%
+                    p = p.map(val => val * 0.95 + 0.0125);
+                }
+                const r = Math.random();
+                let acc = 0;
+                for (let k = 0; k < 4; k++) {
+                    acc += p[k];
+                    if (r <= acc || k === 3) {
+                        counts[k]++;
+                        break;
+                    }
+                }
+            }
+
+            const barW = 75;
+            const gap = (w - 4 * barW) / 5;
+            const labels = ['00', '01', '10', '11'];
+
+            counts.forEach((cnt, idx) => {
+                const x = gap + idx * (barW + gap);
+                const barH = (cnt / shots) * 110;
+                const y = h - 30 - barH;
+
+                // Barre empirique
+                ctx.fillStyle = idx === 0 || idx === 3 ? 'rgba(0, 240, 255, 0.7)' : 'rgba(240, 32, 208, 0.7)';
+                ctx.fillRect(x, y, barW, barH);
+
+                // Ligne blanche théorique
+                const thY = h - 30 - (probs[idx] * 110);
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.moveTo(x - 5, thY);
+                ctx.lineTo(x + barW + 5, thY);
+                ctx.stroke();
+
+                // Textes
+                ctx.fillStyle = '#fff';
+                ctx.font = '12px Fira Code';
+                ctx.fillText(`${cnt}`, x + barW / 2 - 12, y - 6);
+                ctx.fillText(`|${labels[idx]}⟩`, x + barW / 2 - 14, h - 10);
+            });
+
+            ctx.fillStyle = '#8b9bb4';
+            ctx.font = '11px Inter';
+            ctx.fillText('Barres colorées = Tirs stochastiques mesurés · Trait blanc horizontal = Valeur théorique exacte', 15, 20);
+        }
+
+        function generateQASM() {
+            let qasm = `OPENQASM 2.0;\ninclude "qelib1.inc";\n\nqreg q[2];\ncreg c[2];\n\n`;
+            for (let c = 0; c < 4; c++) {
+                const g0 = circuitGrid[0][c];
+                const g1 = circuitGrid[1][c];
+                if (g0 === '●' && g1 === 'X') {
+                    qasm += `cx q[0],q[1];\n`;
+                } else {
+                    if (g0 === 'H') qasm += `h q[0];\n`;
+                    if (g0 === 'X') qasm += `x q[0];\n`;
+                    if (g0 === 'Z') qasm += `z q[0];\n`;
+                    if (g1 === 'H') qasm += `h q[1];\n`;
+                    if (g1 === 'X') qasm += `x q[1];\n`;
+                    if (g1 === 'Z') qasm += `z q[1];\n`;
+                }
+            }
+            qasm += `barrier q;\nmeasure q[0] -> c[0];\nmeasure q[1] -> c[1];\n`;
+            document.getElementById('qasmCodeArea').innerText = qasm;
+        }
+
+        function copyQASM() {
+            const code = document.getElementById('qasmCodeArea').innerText;
+            navigator.clipboard.writeText(code);
+            alert('Code OpenQASM 2.0 copié dans le presse-papier !');
+        }
+
+        // ================= INITIALISATION AU CHARGEMENT =================
+        window.addEventListener('DOMContentLoaded', () => {
+            initEquationList();
+            updateEquationViewer();
+            initBlochCanvas();
+            drawBloch();
+            renderCircuitUI();
+            runSimulation();
+            requestAnimationFrame(animateEquationCanvas);
+        });
+    </script>
+</body>
+</html>
